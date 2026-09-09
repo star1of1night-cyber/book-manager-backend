@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مكتبتي — إدارة الكتب المدرسية</title>
+<meta name="description" content="حوّل صور كتبك المدرسية إلى ملفات PDF قابلة للتحليل واسأل عنها مباشرة" />
+<meta name="theme-color" content="#1B2A4A" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ===== الشريط العلوي ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">مكتبتي</span>
+      <span class="brand-sub">مكتبتك المدرسية الرقمية</span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="library" role="tab">المكتبة</button>
+      <button class="tab-btn" data-tab="upload" role="tab">إضافة كتاب</button>
+      <button class="tab-btn" data-tab="ask" role="tab">اسأل عن كتاب</button>
+      <button class="tab-btn" data-tab="settings" role="tab">الإعدادات</button>
+    </nav>
+  </header>
+
+  <!-- ===== شريط حالة الإعداد ===== -->
+  <div id="setupBanner" class="setup-banner hidden">
+    <span id="setupBannerText"></span>
+    <button class="link-btn" data-tab="settings">الذهاب للإعدادات</button>
+  </div>
+
+  <main class="content">
+
+    <!-- ========== تبويب: المكتبة ========== -->
+    <section id="tab-library" class="tab-panel active">
+      <div class="panel-head">
+        <h1>مكتبتي</h1>
+        <p class="muted">كل كتبك المصوَّرة، مصنّفة وجاهزة للبحث والقراءة</p>
+      </div>
+
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="ابحث داخل محتوى كتبك…" />
+        <select id="subjectFilter">
+          <option value="">كل المواد</option>
+        </select>
+        <button id="refreshBtn" class="ghost-btn">تحديث</button>
+      </div>
+
+      <div id="libraryGrid" class="library-grid">
+        <!-- تُملأ ديناميكيًا -->
+      </div>
+
+      <div id="libraryEmpty" class="empty-state hidden">
+        <div class="empty-icon">📚</div>
+        <h3>لا توجد كتب بعد</h3>
+        <p>ابدأ بإضافة أول كتاب من تبويب "إضافة كتاب"</p>
+      </div>
+    </section>
+
+    <!-- ========== تبويب: إضافة كتاب ========== -->
+    <section id="tab-upload" class="tab-panel">
+      <div class="panel-head">
+        <h1>إضافة كتاب جديد</h1>
+        <p class="muted">صوّر صفحات الكتاب بالترتيب، وسيتم تحويلها إلى PDF وتحليل محتواها تلقائيًا</p>
+      </div>
+
+      <form id="uploadForm" class="card form-card">
+        <div class="field-row">
+          <div class="field">
+            <label for="bookTitle">عنوان الكتاب</label>
+            <input type="text" id="bookTitle" placeholder="مثال: العلوم — الصف الخامس" required />
+          </div>
+          <div class="field">
+            <label for="bookSubject">المادة</label>
+            <input type="text" id="bookSubject" placeholder="مثال: علوم" list="subjectSuggestions" />
+            <datalist id="subjectSuggestions"></datalist>
+          </div>
+          <div class="field">
+            <label for="bookGrade">الصف الدراسي (اختياري)</label>
+            <input type="text" id="bookGrade" placeholder="مثال: الخامس الابتدائي" />
+          </div>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="pagesInput" accept="image/*" multiple capture="environment" hidden />
+          <div class="dropzone-inner">
+            <div class="dropzone-icon">📷</div>
+            <p><strong>اضغط لالتقاط أو اختيار صور الصفحات</strong></p>
+            <p class="muted small">يمكنك اختيار عدة صور دفعة واحدة — رتّبها حسب تسلسل الصفحات</p>
+          </div>
+        </div>
+
+        <div id="previewGrid" class="preview-grid"></div>
+
+        <button type="submit" class="primary-btn" id="uploadSubmitBtn">
+          <span class="btn-label">تحويل وتحليل الكتاب</span>
+        </button>
+
+        <div id="uploadProgress" class="progress-box hidden">
+          <div class="spinner"></div>
+          <span id="uploadProgressText">جارٍ استخراج النص من الصفحات…</span>
+        </div>
+
+        <div id="uploadResult"></div>
+      </form>
+    </section>
+
+    <!-- ========== تبويب: اسأل عن كتاب ========== -->
+    <section id="tab-ask" class="tab-panel">
+      <div class="panel-head">
+        <h1>اسأل عن كتاب</h1>
+        <p class="muted">اختر كتابًا واطرح أي سؤال يخص محتواه</p>
+      </div>
+
+      <div class="card ask-card">
+        <div class="field">
+          <label for="askBookSelect">اختر الكتاب</label>
+          <select id="askBookSelect">
+            <option value="">— اختر كتابًا —</option>
+          </select>
+        </div>
+
+        <div id="chatWindow" class="chat-window">
+          <div class="chat-placeholder">اختر كتابًا ثم اكتب سؤالك بالأسفل ✨</div>
+        </div>
+
+        <form id="askForm" class="ask-input-row">
+          <input type="text" id="questionInput" placeholder="اكتب سؤالك هنا…" disabled />
+          <button type="submit" class="primary-btn small" disabled id="askSubmitBtn">إرسال</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========== تبويب: الإعدادات ========== -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="panel-head">
+        <h1>الإعدادات</h1>
+        <p class="muted">إعدادات الاتصال بالخادم الخلفي وحالة الخدمات</p>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label for="apiBaseUrl">رابط الخادم الخلفي (Backend URL)</label>
+          <input type="text" id="apiBaseUrl" placeholder="مثال: https://your-app.onrender.com" />
+          <p class="muted small">هذا هو الرابط الذي سيرفعه المشروع بعد نشره على استضافة مثل Render أو Railway. راجع ملف التعليمات README.</p>
+        </div>
+        <button id="saveSettingsBtn" class="primary-btn">حفظ</button>
+        <div id="connectionStatus" class="status-box"></div>
+      </div>
+
+      <div class="card info-card">
+        <h3>حالة الخدمات المطلوبة</h3>
+        <ul class="status-list">
+          <li><span class="dot" id="dot-db"></span> قاعدة البيانات (MongoDB)</li>
+          <li><span class="dot" id="dot-ocr"></span> خدمة تحويل الصور إلى نص (OCR)</li>
+          <li><span class="dot" id="dot-ai"></span> خدمة الذكاء الاصطناعي للأسئلة</li>
+        </ul>
+        <p class="muted small">تفعيل هذه الخدمات يتم من ملف <code>.env</code> في الخادم الخلفي بعد رفعه — راجع README.md المرفق في الحزمة.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>تطبيق شخصي مجاني لإدارة الكتب المدرسية</p>
+  </footer>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
